@@ -9,7 +9,7 @@ import datetime
 from csv import writer
 
 LOCAL_DT_TM_FMT = '%d/%m/%Y %H:%M:%S'
-OUT_FILE_PATH = 'wminfo.csv'
+OUT_FILE_PATH = '../../downloads/wminfo.csv'
 
 # Get html content
 url = 'https://www.worldometers.info/coronavirus/'
@@ -25,10 +25,10 @@ soup = BeautifulSoup(html, 'html.parser')
 ctry_tabl = soup.find(id='main_table_countries_today')
 col_names = ['UpdateTime', 'Country_Other', 'TotalCases', 'NewCases', 'TotalDeaths', 'NewDeaths', 'TotalRecovered',
              'ActiveCases', 'Serious,Critical', 'Tot Cases per 1M pop', 'Deaths per 1M pop', 'TotalTests',
-             'Tests per 1M pop']
+             'Tests per 1M pop', 'Population', 'Continent']
 # to derive col names from data uncomment below 2 lines
-# vcol_names = ['DateTime']+ \
-#            [cell.text.strip().replace('\n','') for cell in ctry_tabl.find('thead').find('tr').find_all('th')]
+vcol_names = ['DateTime']+ \
+            [cell.text.strip().replace('\n','') for cell in ctry_tabl.find('thead').find('tr').find_all('th')]
 data.append(col_names)
 
 # for populating values in UpdateTime column.
@@ -39,11 +39,14 @@ for row in tbody_rows:
     cells = row.find_all('td')
     row_data = [time]
     for i, cell in enumerate(cells):
+        if i == 0:
+            continue
         txt = cell.text.strip().replace(',','')
-        if i in [1,2,3,4,5,6,7,10]:
-            val = int(txt) if len(txt) > 0 else ''
-        elif i in [8,9,11]:
-            val = float(txt) if len(txt) > 0 else ''
+        if i in [2,3,4,5,6,7,8,9,10,11,12,13]:
+            try:
+                val = int(txt) if len(txt) > 0 else ''
+            except ValueError:
+                val = ''
         else:
             val = txt
         row_data.append(val)
@@ -52,3 +55,4 @@ for row in tbody_rows:
 with open(OUT_FILE_PATH, 'w', newline='') as f:
     csv_writer = writer(f, delimiter=',')
     csv_writer.writerows(data)
+
